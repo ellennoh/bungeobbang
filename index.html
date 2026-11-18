@@ -1,0 +1,715 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>붕어당</title>
+<meta name="description" content="겨울에만 굽는 붕어빵 포장마차 붕어당 — 반죽을 붓고 속을 넣고 직접 구워 담는 체험형 컨셉 사이트">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gasoek+One&family=Gaegu:wght@400;700&family=Nanum+Gothic+Coding:wght@400;700&display=swap" rel="stylesheet">
+<link rel="preload" as="image" href="img/bg.webp">
+<style>
+:root{
+  --awning:#e8501e; --stamp:#d5281b; --sticker:#ffd23f; --cream:#fff4e0;
+  --ink:#2b1d12; --paper:#fbfaf4; --batter:#f4dc95;
+  --f-sign:'Gasoek One',sans-serif; --f-hand:'Gaegu',cursive; --f-mono:'Nanum Gothic Coding',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:#140d08;color:var(--ink)}
+body{font-family:var(--f-hand);-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+body.fine{cursor:none}
+body.fine *{cursor:none!important}
+/* blurred photo behind letterbox */
+#backdrop{position:fixed;inset:-60px;background:url(img/bg.webp) center/cover no-repeat;filter:blur(28px) brightness(.38) saturate(1.1);transform:scale(1.05)}
+
+#stage{position:fixed;left:0;top:0;width:2048px;height:1360px;transform-origin:0 0;overflow:hidden;background:#2a2119;box-shadow:0 0 80px rgba(0,0,0,.6)}
+button{all:unset;display:block;position:absolute;box-sizing:border-box}
+button:focus-visible{outline:4px dashed var(--sticker);outline-offset:6px}
+
+/* ---------- photo layer: source photo pixels (1536x1024) scaled to stage ---------- */
+#photo{position:absolute;left:0;top:0;width:1536px;height:1024px;transform:scale(1.3333333);transform-origin:0 0}
+#photo>.bgimg{position:absolute;left:0;top:0;width:1536px;height:1024px}
+#mold{position:absolute;left:550px;top:351px;width:616px;height:431px;background:url(img/mold.webp) 0 0/616px 431px}
+.quad{position:absolute;overflow:hidden;pointer-events:none}
+.quad .st{position:absolute;width:1536px;height:1024px;background-size:1536px 1024px;clip-path:circle(0px at 0 0)}
+.quad .tint{-webkit-mask:radial-gradient(ellipse 180px 122px at var(--cx) var(--cy),#000 68%,#0000 100%);mask:radial-gradient(ellipse 180px 122px at var(--cx) var(--cy),#000 68%,#0000 100%);opacity:0}
+.quad .fill{position:absolute;width:170px;height:113px;opacity:0;pointer-events:none;filter:drop-shadow(0 4px 4px rgba(0,0,0,.35))}
+#glow{position:absolute;left:550px;top:351px;width:616px;height:431px;border-radius:14px;pointer-events:none;opacity:0;
+  box-shadow:0 0 40px 16px rgba(232,80,30,.9),0 0 90px 30px rgba(255,110,30,.45),inset 0 0 36px 10px rgba(255,120,40,.85);border:5px solid rgba(255,150,60,.95)}
+#lidWrap{position:absolute;left:550px;top:351px;width:616px;height:431px;perspective:1300px;pointer-events:none}
+#lid{position:absolute;inset:0;background:url(img/closed.webp) -550px -351px/1536px 1024px;transform-origin:28px 50%;
+  backface-visibility:hidden;visibility:hidden;box-shadow:0 18px 30px rgba(0,0,0,.55)}
+.steam{position:absolute;width:90px;height:90px;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle,rgba(255,255,255,.85) 0%,rgba(255,255,255,.35) 45%,rgba(255,255,255,0) 70%);filter:blur(4px)}
+.hit{z-index:2}
+.cellHit{width:270px;height:190px;border-radius:50%}
+.binHit,.handleHit{border-radius:18px}
+.label{position:absolute;display:flex;align-items:center;justify-content:center;font:700 40px/1 var(--f-hand);color:#33231a;pointer-events:none;letter-spacing:1px}
+
+/* ---------- stage UI (2048 coords) ---------- */
+#awning{position:absolute;left:480px;top:8px;width:930px;height:84px;display:flex;align-items:center;justify-content:center;gap:14px;
+  color:var(--cream);font-family:var(--f-sign);white-space:nowrap;text-shadow:0 3px 0 rgba(120,30,0,.55);pointer-events:none}
+#awning b{font-weight:400;font-size:58px;letter-spacing:2px}
+#awning span{font-size:30px}
+#awning i{font-style:normal;font-size:26px;color:var(--sticker)}
+
+#price{position:absolute;left:70px;top:1168px;width:300px;height:150px;background:var(--cream);transform:rotate(-4deg);
+  box-shadow:0 8px 14px rgba(0,0,0,.4);border-radius:4px;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none}
+#price::before{content:'';position:absolute;top:-16px;left:50%;width:110px;height:34px;margin-left:-55px;background:rgba(240,214,140,.82);transform:rotate(3deg)}
+#price::after{content:'';position:absolute;inset:8px;border:3px dashed rgba(232,80,30,.55);border-radius:3px}
+#price .a{font:700 40px/1 var(--f-hand);color:var(--ink)}
+#price .b{font:64px/1.05 var(--f-sign);color:var(--awning)}
+
+#kettleSpot{position:absolute;left:675px;top:1250px;width:230px;height:70px;border-radius:50%;background:radial-gradient(ellipse,rgba(0,0,0,.35),rgba(0,0,0,0) 70%);opacity:0;pointer-events:none}
+#kettle{left:640px;top:1085px;width:290px;height:265px;z-index:5}
+#kettle img{width:100%;height:100%;filter:drop-shadow(0 14px 12px rgba(0,0,0,.5));pointer-events:none}
+
+#sign{position:absolute;left:1445px;top:96px;width:600px;height:400px;z-index:6;transform:rotate(2.5deg);pointer-events:none}
+#sign>img{position:absolute;inset:0;width:100%;height:100%;filter:drop-shadow(0 12px 14px rgba(0,0,0,.5))}
+#signText{position:absolute;left:88px;top:96px;width:424px;height:226px;display:flex;align-items:center;justify-content:center;text-align:center;
+  font:700 44px/1.12 var(--f-hand);color:var(--ink);white-space:pre-line}
+#signText.hint{color:var(--stamp)}
+#gauge{position:absolute;left:90px;top:96px;width:420px;height:226px;opacity:0;visibility:hidden}
+#gauge .cap{position:absolute;left:0;right:0;bottom:0;text-align:center;font:700 32px/1.1 var(--f-hand);color:var(--ink);white-space:pre-line}
+#gauge .cap.hint{color:var(--stamp)}
+
+#receipt{position:absolute;left:1212px;top:1050px;width:252px;z-index:6;transform:rotate(-2deg);pointer-events:none}
+.paper{background:var(--paper);color:#222;font-family:var(--f-mono);box-shadow:0 10px 16px rgba(0,0,0,.4);
+  --s:18px;-webkit-mask:conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) 50%/var(--s) 100%;
+  mask:conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) 50%/var(--s) 100%}
+#receipt .paper{padding:14px 16px 26px;font-size:16px;line-height:1.38}
+.paper .h{font-weight:700;text-align:center;font-size:20px;letter-spacing:4px}
+.paper .sub{text-align:center;font-size:13px;color:#555}
+.paper .hr{border-top:2px dashed #999;margin:6px 0}
+.paper .row{display:flex;justify-content:space-between;gap:8px;white-space:nowrap}
+.paper .row span:first-child{overflow:hidden;text-overflow:ellipsis}
+.paper .muted{color:#888;text-align:center}
+
+#stampBtn{left:1012px;top:1150px;width:178px;height:178px;z-index:6;transform:rotate(4deg)}
+#stampBtn .slip{position:absolute;inset:0;background:var(--cream);border-radius:4px;box-shadow:0 8px 14px rgba(0,0,0,.4)}
+.seal{position:absolute;border-radius:50%;border:6px solid var(--stamp);box-shadow:inset 0 0 0 5px var(--cream),inset 0 0 0 9px var(--stamp);
+  color:var(--stamp);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;mix-blend-mode:multiply}
+#stampBtn .seal{left:16px;top:16px;width:146px;height:146px;transform:rotate(-8deg)}
+#stampBtn .seal b{font:400 40px/1 var(--f-sign)}
+#stampBtn .seal small{font:700 22px/1.1 var(--f-hand);margin-top:4px}
+
+#bag{position:absolute;left:1500px;top:872px;width:520px;height:475px;z-index:21;pointer-events:none;transform-origin:50% 100%}
+#bag .back,#bag .front{position:absolute;inset:0;width:100%;height:100%}
+#bag .back{filter:drop-shadow(0 14px 14px rgba(0,0,0,.45))}
+#bag .front{clip-path:inset(21% 0 0 0)}
+#bagFish{position:absolute;inset:0}
+#bagFish img,#fx img.fly{position:absolute;width:360px;height:240px;left:0;top:0;transform-origin:50% 50%}
+#sticker{position:absolute;left:186px;top:262px;width:150px;height:150px;border-radius:50%;background:var(--sticker);transform:rotate(-8deg);
+  box-shadow:0 3px 0 rgba(0,0,0,.12),0 4px 8px rgba(0,0,0,.25);display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--ink)}
+#sticker b{font:400 34px/1 var(--f-sign)}
+#sticker span{font:700 30px/1.1 var(--f-hand)}
+
+#fx{position:absolute;inset:0;z-index:40;pointer-events:none}
+.stream{position:absolute;width:20px;border-radius:10px;background:linear-gradient(90deg,#e9c46a,var(--batter) 45%,#fff3c4 60%,#e9c46a);transform-origin:50% 0}
+.drop{position:absolute;width:150px;height:100px}
+
+/* checkout */
+#shade{position:absolute;inset:0;z-index:50;background:rgba(15,8,4,.6);opacity:0;visibility:hidden}
+#printer{position:absolute;left:734px;top:60px;width:580px;height:1300px;overflow:hidden;z-index:51;visibility:hidden;pointer-events:none}
+#bigReceipt{position:absolute;left:10px;bottom:0;width:560px}
+#bigReceipt .paper{padding:34px 36px 46px;font-size:22px;line-height:1.5;--s:26px}
+#bigReceipt .h{font-size:40px;letter-spacing:10px}
+#bigReceipt .sub{font-size:18px}
+#bigReceipt .grade{text-align:center;font-weight:700;font-size:30px;margin:6px 0 2px}
+#bigReceipt .note{text-align:center;font-size:16px;color:#777;margin-top:10px}
+#doneSeal{width:250px;height:250px;left:1010px;top:330px;transform:rotate(-14deg);opacity:0;z-index:52;pointer-events:none;border-width:9px;
+  box-shadow:inset 0 0 0 8px rgba(0,0,0,0),inset 0 0 0 14px var(--stamp)}
+#doneSeal b{font:400 54px/1.05 var(--f-sign)}
+#doneSeal small{font:700 26px/1 var(--f-hand)}
+#again{left:1350px;top:1010px;width:220px;height:220px;border-radius:50%;background:var(--sticker);z-index:53;visibility:hidden;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;transform:rotate(8deg);
+  box-shadow:0 4px 0 rgba(0,0,0,.15),0 10px 18px rgba(0,0,0,.45);text-align:center}
+#again b{font:400 40px/1.05 var(--f-sign);color:var(--ink)}
+#again span{font:700 28px/1.1 var(--f-hand);color:var(--ink)}
+
+/* cursor + held items (viewport coords) */
+#cursor{position:fixed;left:0;top:0;z-index:100;pointer-events:none;transform-origin:0 0}
+#cursor img{position:absolute;display:none;pointer-events:none}
+#cHand{width:200px;height:183px;left:-52px;top:-11px;filter:drop-shadow(6px 10px 8px rgba(0,0,0,.4))}
+#cTongs{width:300px;height:274px;left:-19px;top:-37px;filter:drop-shadow(6px 10px 8px rgba(0,0,0,.4))}
+#cKettle{width:260px;height:238px;left:-6px;top:-86px;filter:drop-shadow(8px 16px 10px rgba(0,0,0,.45))}
+#cBlob{width:130px;height:87px;left:-40px;top:6px;filter:drop-shadow(0 6px 5px rgba(0,0,0,.4))}
+
+#turn{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;background:rgba(15,8,4,.55)}
+#turn .card{position:relative;width:min(86vw,420px);aspect-ratio:3/2;background:url(img/sign.webp) center/100% 100% no-repeat;display:flex;align-items:center;justify-content:center;
+  text-align:center;font:700 clamp(22px,6.4vw,30px)/1.2 var(--f-hand);color:var(--ink);padding:16% 14%;transform:rotate(-2deg)}
+@media (orientation:portrait) and (max-width:820px){ body:not(.turnSeen) #turn{display:flex} }
+</style>
+</head>
+<body>
+<div id="backdrop"></div>
+
+<div id="stage" aria-label="붕어당 조리대">
+  <div id="photo">
+    <img class="bgimg" src="img/bg.webp" alt="" draggable="false">
+    <div id="mold"></div>
+    <div id="cells"></div>
+    <div id="glow"></div>
+    <div id="lidWrap"><div id="lid"></div></div>
+    <div id="steamLayer"></div>
+    <div class="label" style="left:48px;top:366px;width:184px;height:70px;transform:rotate(-1.5deg)">팥</div>
+    <div class="label" style="left:315px;top:366px;width:182px;height:70px;transform:rotate(1deg)">슈크림</div>
+    <div class="label" style="left:30px;top:752px;width:190px;height:82px;transform:rotate(1deg)">고구마</div>
+    <div class="label" style="left:312px;top:752px;width:182px;height:82px;transform:rotate(-1deg)">초코</div>
+    <button class="hit binHit" data-bin="0" aria-label="팥 통" style="left:12px;top:120px;width:263px;height:245px"></button>
+    <button class="hit binHit" data-bin="1" aria-label="슈크림 통" style="left:278px;top:120px;width:262px;height:245px"></button>
+    <button class="hit binHit" data-bin="2" aria-label="고구마 통" style="left:0;top:460px;width:263px;height:285px"></button>
+    <button class="hit binHit" data-bin="3" aria-label="초코 통" style="left:266px;top:460px;width:269px;height:285px"></button>
+    <button class="hit handleHit" id="handle" aria-label="틀 손잡이" style="left:1170px;top:505px;width:355px;height:135px"></button>
+  </div>
+
+  <div id="awning"><b>붕어당</b><i>✽</i><span>겨울에만 굽는 붕어빵</span><i>✽</i><span>매일 오후 3시 첫 판</span></div>
+
+  <div id="price"><div class="a">한 마리</div><div class="b">700원</div></div>
+
+  <div id="kettleSpot"></div>
+  <button id="kettle" aria-label="반죽 주전자"><img src="img/kettle.webp" alt="" draggable="false"></button>
+
+  <div id="sign" class="obj">
+    <img src="img/sign.webp" alt="" draggable="false">
+    <div id="signText"></div>
+    <div id="gauge">
+      <svg viewBox="0 0 420 180" width="420" height="180" aria-hidden="true">
+        <g font-family="Gaegu" font-weight="700" font-size="34" fill="#2b1d12" text-anchor="middle">
+          <text x="85" y="34">덜</text><text x="223" y="34">황금</text><text x="347" y="34">바삭</text>
+        </g>
+        <path d="M12 52 L161 50 L162 100 L13 102 Z" fill="#f6e9b8" stroke="#2b1d12" stroke-width="4" stroke-linejoin="round"/>
+        <path d="M161 50 L286 51 L285 101 L162 100 Z" fill="#f0a52c" stroke="#2b1d12" stroke-width="4" stroke-linejoin="round"/>
+        <path d="M286 51 L408 53 L407 99 L285 101 Z" fill="#6b3311" stroke="#2b1d12" stroke-width="4" stroke-linejoin="round"/>
+        <path d="M20 114 Q 210 124 400 112" fill="none" stroke="#2b1d12" stroke-width="3" stroke-linecap="round" stroke-dasharray="2 12"/>
+        <g id="needle" transform="translate(12 0)">
+          <path d="M0 40 L0 112" stroke="#d5281b" stroke-width="7" stroke-linecap="round"/>
+          <path d="M-13 124 L13 124 L0 104 Z" fill="#d5281b"/>
+        </g>
+      </svg>
+      <div class="cap" id="gaugeCap">손잡이를 다시 눌러 꺼내요</div>
+    </div>
+  </div>
+
+  <div id="receipt" class="obj"><div class="paper" id="rcpt"></div></div>
+
+  <button id="stampBtn" aria-label="계산 도장"><div class="slip"></div><div class="seal"><b>계산</b><small>도장 쾅</small></div></button>
+
+  <div id="bag">
+    <img class="back" src="img/bag.webp" alt="" draggable="false">
+    <div id="bagFish"></div>
+    <img class="front" src="img/bag.webp" alt="" draggable="false">
+    <div id="sticker"><b id="stCount">0마리</b><span id="stWon">0원</span></div>
+  </div>
+
+  <div id="fx"></div>
+
+  <div id="shade"></div>
+  <div id="printer"><div id="bigReceipt"><div class="paper" id="bigPaper"></div></div></div>
+  <div id="doneSeal" class="seal"><b>주문<br>완료</b><small>붕어당</small></div>
+  <button id="again" aria-label="한 판 더 굽기"><b>한 판 더</b><span>굽기</span></button>
+</div>
+
+<div id="cursor">
+  <img id="cHand" src="img/hand.webp" alt="">
+  <img id="cTongs" src="img/handtongs.webp" alt="">
+  <img id="cKettle" src="img/kettle.webp" alt="">
+  <img id="cBlob" alt="">
+</div>
+
+<div id="turn"><div class="card">휴대폰을 가로로 돌리면<br>크게 보여요</div></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script>
+(() => {
+'use strict';
+const $ = s => document.querySelector(s);
+const K = 2048 / 1536;                       // photo px -> stage px
+const W = 2048, H = 1360;
+const FLAVORS = ['팥', '슈크림', '고구마', '초코'];
+const PRICE = { normal: 700, gonggal: 500, topped: 500, half: 300, open: 300, burst: 300, burnt: 0 };
+const NAMES = { normal: '붕어빵', gonggal: '공갈빵', topped: '속 올린 붕어빵', half: '반쪽 붕어빵', open: '뚜껑 없는 붕어빵', burst: '터진 붕어빵', burnt: '탄 붕어빵' };
+const DONE = {
+  under: { word: '덜 익힘', filter: 'brightness(1.22) saturate(.68)' },
+  golden: { word: '황금', filter: 'none' },
+  crisp: { word: '바삭', filter: 'brightness(.52) saturate(1.25) contrast(1.12)' },
+};
+// fish-cell geometry measured from the state photos (photo px)
+const MOLD = { x: 550, y: 351, w: 616, h: 431 };
+const CELLS = [
+  { cx: 733, cy: 455, q: [550, 351, 320, 203] },
+  { cx: 1006, cy: 455, q: [870, 351, 296, 203] },
+  { cx: 733, cy: 653, q: [550, 554, 320, 228] },
+  { cx: 1007, cy: 653, q: [870, 554, 296, 228] },
+];
+const OPEN_R = 230;
+
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+if (reduce) gsap.globalTimeline.timeScale(3);
+const fine = matchMedia('(hover: hover) and (pointer: fine)').matches;
+if (fine) document.body.classList.add('fine');
+
+/* ---------------- stage fit ---------------- */
+const stage = $('#stage');
+let scale = 1, offX = 0, offY = 0;
+function fit() {
+  const vw = innerWidth, vh = innerHeight;
+  scale = Math.min(vw / W, vh / H);
+  offX = (vw - W * scale) / 2; offY = (vh - H * scale) / 2;
+  stage.style.transform = `translate(${offX}px,${offY}px) scale(${scale})`;
+  $('#cursor').style.setProperty('--s', scale);
+  placeCursor();
+}
+addEventListener('resize', fit);
+
+/* ---------------- sound (Web Audio, no files) ---------------- */
+let ac = null, master = null, noiseBuf = null, sizzle = null;
+function audioInit() {
+  if (ac) { if (ac.state === 'suspended') ac.resume(); return; }
+  const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
+  ac = new AC(); master = ac.createGain(); master.gain.value = .7; master.connect(ac.destination);
+  noiseBuf = ac.createBuffer(1, ac.sampleRate * 2, ac.sampleRate);
+  const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+}
+function noise(dur, filters, env, when = 0) {
+  if (!ac) return;
+  const t = ac.currentTime + when, src = ac.createBufferSource(); src.buffer = noiseBuf; src.loop = true;
+  let node = src;
+  for (const f of filters) { const b = ac.createBiquadFilter(); b.type = f.type; b.frequency.value = f.f; if (f.q) b.Q.value = f.q; if (f.to) b.frequency.exponentialRampToValueAtTime(f.to, t + dur); node.connect(b); node = b; }
+  const g = ac.createGain(); g.gain.setValueAtTime(0, t); env(g.gain, t); node.connect(g); g.connect(master);
+  src.start(t); src.stop(t + dur + .05);
+}
+function tone(type, f0, f1, dur, vol, when = 0) {
+  if (!ac) return;
+  const t = ac.currentTime + when, o = ac.createOscillator(), g = ac.createGain();
+  o.type = type; o.frequency.setValueAtTime(f0, t); if (f1) o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+  g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+  o.connect(g); g.connect(master); o.start(t); o.stop(t + dur + .02);
+}
+const sfx = {
+  pour() { noise(.9, [{ type: 'bandpass', f: 1400, to: 600, q: .7 }], (g, t) => { g.linearRampToValueAtTime(.55, t + .08); g.setValueAtTime(.5, t + .55); g.linearRampToValueAtTime(0, t + .9); }); },
+  plop() { tone('sine', 620, 130, .16, .55); noise(.08, [{ type: 'lowpass', f: 900 }], (g, t) => { g.linearRampToValueAtTime(.25, t + .01); g.linearRampToValueAtTime(0, t + .08); }, .02); },
+  lid() { tone('sine', 85, 42, .5, .95); tone('triangle', 170, 90, .25, .35); noise(.3, [{ type: 'lowpass', f: 1600, to: 300 }], (g, t) => { g.linearRampToValueAtTime(.8, t + .005); g.exponentialRampToValueAtTime(.001, t + .3); }); },
+  rustle() { noise(.4, [{ type: 'bandpass', f: 3200, q: .6 }], (g, t) => { for (let i = 0; i < 7; i++) { const s = t + i * .05 + Math.random() * .02; g.setValueAtTime(.05, s); g.linearRampToValueAtTime(.35 + Math.random() * .25, s + .012); g.linearRampToValueAtTime(.03, s + .045); } g.linearRampToValueAtTime(0, t + .4); }); },
+  ding() { tone('sine', 1568, 0, 1.6, .35); tone('sine', 3136, 0, .9, .12); tone('sine', 2093, 0, 1.2, .1, .01); },
+  thud() { tone('sine', 110, 40, .35, 1); noise(.12, [{ type: 'lowpass', f: 700 }], (g, t) => { g.linearRampToValueAtTime(.7, t + .004); g.exponentialRampToValueAtTime(.001, t + .12); }); },
+  tick() { noise(.03, [{ type: 'highpass', f: 2500 }], (g, t) => { g.linearRampToValueAtTime(.18, t + .002); g.linearRampToValueAtTime(0, t + .03); }); },
+  sizzleOn() {
+    if (!ac || sizzle) return;
+    const src = ac.createBufferSource(); src.buffer = noiseBuf; src.loop = true;
+    const hp = ac.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 2600;
+    const pk = ac.createBiquadFilter(); pk.type = 'peaking'; pk.frequency.value = 6000; pk.gain.value = 6;
+    const g = ac.createGain(); g.gain.value = 0;
+    src.connect(hp); hp.connect(pk); pk.connect(g); g.connect(master); src.start();
+    const iv = setInterval(() => { const t = ac.currentTime; g.gain.cancelScheduledValues(t); g.gain.setTargetAtTime(.06 + Math.random() * .14, t, .02); if (Math.random() < .35) { g.gain.setValueAtTime(.3, t + .01); g.gain.setTargetAtTime(.1, t + .02, .02); } }, 70);
+    sizzle = { src, g, iv };
+  },
+  sizzleOff() { if (!sizzle) return; clearInterval(sizzle.iv); const t = ac.currentTime; sizzle.g.gain.cancelScheduledValues(t); sizzle.g.gain.setTargetAtTime(0, t, .08); sizzle.src.stop(t + .5); sizzle = null; },
+};
+
+/* ---------------- cells ---------------- */
+const cellsEl = $('#cells');
+const cells = CELLS.map((c, i) => {
+  const [qx, qy, qw, qh] = c.q;
+  const quad = document.createElement('div'); quad.className = 'quad';
+  Object.assign(quad.style, { left: qx + 'px', top: qy + 'px', width: qw + 'px', height: qh + 'px' });
+  const st = document.createElement('div'); st.className = 'st'; st.style.left = -qx + 'px'; st.style.top = -qy + 'px';
+  const tint = st.cloneNode(); tint.classList.add('tint'); tint.style.setProperty('--cx', c.cx + 'px'); tint.style.setProperty('--cy', c.cy + 'px');
+  const fill = document.createElement('img'); fill.className = 'fill'; fill.alt = '';
+  fill.style.left = (c.cx - qx - 85) + 'px'; fill.style.top = (c.cy - qy - 60) + 'px';
+  quad.append(st, tint, fill); cellsEl.append(quad);
+  const hit = document.createElement('button'); hit.className = 'hit cellHit'; hit.dataset.cell = i; hit.setAttribute('aria-label', `${i + 1}번 칸`);
+  hit.style.left = (c.cx - 135) + 'px'; hit.style.top = (c.cy - 95) + 'px'; $('#photo').append(hit);
+  return { ...c, i, quad, st, tint, fill, seq: [], flavor: null, img: null, result: null, collected: false };
+});
+function clip(r, c) { return `circle(${r}px at ${c.cx}px ${c.cy}px)`; }
+function setState(c, img, opts = {}) {
+  if (img === c.img && !opts.force) return;
+  if (!img) { gsap.to([c.st, c.tint], { clipPath: clip(0, c), duration: .3, ease: 'power2.in' }); c.img = null; return; }
+  c.st.style.backgroundImage = c.tint.style.backgroundImage = `url(img/${img}.webp)`; c.img = img;
+  gsap.fromTo([c.st, c.tint], { clipPath: clip(opts.from ?? 20, c) }, { clipPath: clip(OPEN_R, c), duration: opts.dur ?? .55, ease: 'power2.out' });
+}
+function setFill(c, flavor, show) {
+  if (show) { c.fill.src = `img/d${flavor}.webp`; gsap.to(c.fill, { opacity: 1, duration: .15 }); }
+  else gsap.to(c.fill, { opacity: 0, duration: .2 });
+}
+function preview(c) {          // look of a cell before baking
+  const s = c.seq.join('');
+  if (!s) return { img: null, fill: false };
+  if (s[0] === 'F') return s.includes('B') ? { img: 'b2', fill: false } : { img: null, fill: true };
+  if (s === 'B') return { img: 'b1', fill: false };
+  if (s.startsWith('BF') && !s.slice(2).includes('B')) return { img: 'b1', fill: true };
+  if (s === 'BBF') return { img: 'b2', fill: true };
+  return { img: 'b2', fill: false };
+}
+function classify(seq) {
+  const s = seq.join('');
+  if (s[0] === 'F') return s.includes('B') ? 'burst' : 'burnt';
+  if (s === 'BFB') return 'normal';
+  if (!s.includes('F')) return s.length === 1 ? 'half' : 'gonggal';
+  if (s.startsWith('BB')) return 'topped';
+  if (s.startsWith('BF') && !s.slice(2).includes('B')) return 'open';
+  return 'normal';
+}
+const AFTER = { normal: ['baked', 0, 'fish'], gonggal: ['baked', 0, 'fish'], topped: ['baked', 1, 'fish'], half: ['half', 0, 'fhalf'], open: ['half', 1, 'fhalf'], burst: ['burst', 0, 'fburst'], burnt: ['burst', 0, 'fburst'] };
+
+/* ---------------- state ---------------- */
+const S = { phase: 'intro', held: null, busy: false, done: null, items: [], last: Date.now() };
+let pointer = { x: -999, y: -999, inside: false };
+
+/* ---------------- cursor ---------------- */
+const cur = $('#cursor'), cHand = $('#cHand'), cTongs = $('#cTongs'), cKettle = $('#cKettle'), cBlob = $('#cBlob');
+function placeCursor() { cur.style.transform = `translate(${pointer.x}px,${pointer.y}px) scale(${scale})`; }
+function showCursor() {
+  const held = S.held;
+  cKettle.style.display = held === 'kettle' ? 'block' : 'none';
+  cBlob.style.display = held && held !== 'kettle' ? 'block' : 'none';
+  if (held && held !== 'kettle') cBlob.src = `img/d${held}.webp`;
+  const tongs = S.phase === 'collect';
+  cTongs.style.display = fine && tongs && !held ? 'block' : 'none';
+  cHand.style.display = fine && !tongs && held !== 'kettle' ? 'block' : 'none';
+}
+addEventListener('pointermove', e => { pointer = { x: e.clientX, y: e.clientY }; placeCursor(); S.last = Date.now(); }, { passive: true });
+function toStage(cx, cy) { return { x: (cx - offX) / scale, y: (cy - offY) / scale }; }
+
+/* ---------------- sign / guide ---------------- */
+const signText = $('#signText'), gauge = $('#gauge'), gaugeCap = $('#gaugeCap');
+let hintTimer = null;
+function say(text, hint = false) {
+  if (S.phase === 'bake') { gaugeCap.textContent = text; gaugeCap.classList.toggle('hint', hint); return; }
+  signText.textContent = text; signText.classList.toggle('hint', hint);
+}
+function guide() {
+  if (hintTimer) return;
+  if (S.phase === 'make') {
+    const filled = cells.filter(c => c.seq.length);
+    const perfect = filled.length && filled.every(c => c.seq.join('') === 'BFB');
+    if (S.held === 'kettle') say(filled.length ? '칸을 누르면\n반죽을 부어요' : '틀 칸을 눌러\n반죽을 부어요');
+    else if (S.held !== null) say('칸을 누르면\n속이 올라가요');
+    else if (!filled.length) say('주전자를 들고\n틀 칸에 반죽을 부어요');
+    else if (perfect) say('다 채웠으면\n손잡이를 눌러 구워요');
+    else say('반죽 → 속 → 반죽\n채우고 손잡이 꾹!');
+  } else if (S.phase === 'bake') say('손잡이를 다시 눌러 꺼내요');
+  else if (S.phase === 'collect') {
+    const left = cells.some(c => c.result && !c.collected);
+    say(left ? `${DONE[S.done].word}!\n집게로 봉투에 담아요` : '다 담았어요\n도장을 눌러 계산해요');
+  }
+}
+function hint(text) {
+  S.last = Date.now();
+  clearTimeout(hintTimer); hintTimer = null; say(text, true);
+  gsap.fromTo('#sign', { rotation: 2.5 }, { keyframes: { rotation: [-3, 6, -4, 4, -1, 2.5] }, duration: .55, ease: 'none' });
+  hintTimer = setTimeout(() => { hintTimer = null; gaugeCap.classList.remove('hint'); guide(); }, 2400);
+}
+
+/* ---------------- small receipt / sticker ---------------- */
+const rcpt = $('#rcpt');
+function stamp() { const d = new Date(); return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; }
+function resetReceipt() {
+  rcpt.innerHTML = `<div class="h">붕어당</div><div class="sub">${stamp()}</div><div class="hr"></div><div id="lines"><div class="muted">아직 비었어요</div></div><div class="hr"></div><div class="row"><span>합계</span><span id="sum">0원</span></div>`;
+}
+const won = n => n.toLocaleString('ko-KR') + '원';
+function itemLabel(it) { return it.kind === 'normal' ? `${FLAVORS[it.flavor]} 붕어빵` : it.kind === 'burnt' ? '탄빵(버림)' : NAMES[it.kind].replace(' 붕어빵', '빵').replace(/ /g, ''); }
+function addLine(it) {
+  const lines = $('#lines'); if (lines.querySelector('.muted')) lines.innerHTML = '';
+  const row = document.createElement('div'); row.className = 'row';
+  row.innerHTML = `<span>${itemLabel(it)}</span><span>${it.price}</span>`;
+  lines.append(row); sfx.tick();
+  gsap.from(row, { clipPath: 'inset(0 100% 0 0)', duration: .35, ease: 'steps(6)' });
+  const sum = S.items.reduce((a, b) => a + b.price, 0); $('#sum').textContent = won(sum);
+  gsap.fromTo('#receipt', { y: -6 }, { y: 0, duration: .25 });
+}
+function updateSticker(pop = true) {
+  const kept = S.items.filter(i => i.kind !== 'burnt');
+  $('#stCount').textContent = kept.length + '마리';
+  $('#stWon').textContent = won(kept.reduce((a, b) => a + b.price, 0));
+  if (pop) gsap.fromTo('#sticker', { scale: 1.35 }, { scale: 1, duration: .5, ease: 'back.out(3)' });
+}
+
+/* ---------------- make ---------------- */
+const kettleBtn = $('#kettle');
+function pickKettle() {
+  S.held = 'kettle'; gsap.to(kettleBtn, { opacity: 0, scale: .9, duration: .15 }); gsap.to('#kettleSpot', { opacity: 1, duration: .2 });
+  showCursor(); gsap.fromTo(cKettle, { y: 20, rotation: 8 }, { y: 0, rotation: 0, duration: .35, ease: 'back.out(2)' }); guide();
+}
+function dropHeld() {
+  if (S.held === 'kettle') { gsap.to(kettleBtn, { opacity: 1, scale: 1, duration: .25, ease: 'back.out(2)' }); gsap.to('#kettleSpot', { opacity: 0, duration: .2 }); }
+  S.held = null; showCursor();
+}
+function pickFilling(f) {
+  if (S.held === 'kettle') dropHeld();
+  S.held = f; showCursor(); sfx.plop();
+  gsap.fromTo(cBlob, { scale: .4, y: 30 }, { scale: 1, y: 0, duration: .3, ease: 'back.out(3)' }); guide();
+}
+function cellStage(c) { return { x: c.cx * K, y: c.cy * K }; }
+
+function pour(c) {
+  S.busy = true;
+  const fx = $('#fx'), C = cellStage(c);
+  const kw = 300, kh = 274, ang = -38;
+  const tipLocal = { x: .021 * kw - kw / 2, y: .362 * kh - kh / 2 };
+  const r = ang * Math.PI / 180, rx = tipLocal.x * Math.cos(r) - tipLocal.y * Math.sin(r), ry = tipLocal.x * Math.sin(r) + tipLocal.y * Math.cos(r);
+  const tip = { x: C.x - 6, y: C.y - 150 };
+  const k = document.createElement('img'); k.src = 'img/kettle.webp'; k.className = 'fly';
+  Object.assign(k.style, { position: 'absolute', width: kw + 'px', height: kh + 'px', filter: 'drop-shadow(8px 16px 10px rgba(0,0,0,.45))' });
+  const p = toStage(pointer.x, pointer.y);
+  // element top-left so the spout sits where the hand was
+  const start = fine && p.x > -500 ? { x: p.x - .021 * kw, y: p.y - .362 * kh } : { x: C.x + 160, y: C.y - 260 };
+  fx.append(k); cKettle.style.display = 'none';
+  const stream = document.createElement('div'); stream.className = 'stream';
+  Object.assign(stream.style, { left: (tip.x - 10) + 'px', top: tip.y + 'px', height: (C.y - tip.y) + 'px' });
+  gsap.set(stream, { scaleY: 0 });
+  const tl = gsap.timeline({ onComplete: () => { k.remove(); stream.remove(); S.busy = false; showCursor(); guide(); } });
+  tl.fromTo(k, { x: start.x, y: start.y, rotation: 0 },{ x: tip.x - rx - kw / 2, y: tip.y - ry - kh / 2, rotation: ang, duration: .32, ease: 'power2.out' })
+    .add(() => { fx.insertBefore(stream, k); sfx.pour(); })
+    .to(stream, { scaleY: 1, duration: .18, ease: 'power1.in' })
+    .add(() => { const v = preview(c); setState(c, v.img, { dur: .6 }); setFill(c, c.flavor, v.fill); }, '-=.02')
+    .to(stream, { scaleY: .02, y: C.y - tip.y, duration: .5, ease: 'power1.in' }, '+=.35')
+    .to(k, { rotation: 0, y: '-=40', duration: .25, ease: 'power2.out' }, '-=.3')
+    .to(k, { autoAlpha: 0, duration: .08 });
+}
+function dropFilling(c, f) {
+  S.busy = true;
+  const C = cellStage(c), p = fine ? toStage(pointer.x, pointer.y) : { x: C.x + 120, y: C.y - 200 };
+  const d = document.createElement('img'); d.src = `img/d${f}.webp`; d.className = 'drop'; $('#fx').append(d);
+  gsap.timeline({ onComplete: () => { d.remove(); S.busy = false; guide(); } })
+    .fromTo(d, { x: p.x - 75, y: p.y - 30, scale: .9 }, { x: C.x - 112, y: C.y - 76, scale: 1.5, duration: .32, ease: 'power2.in' })
+    .add(() => { sfx.plop(); const v = preview(c); setState(c, v.img); setFill(c, c.flavor, v.fill); gsap.fromTo(c.fill, { scale: 1.3 }, { scale: 1, duration: .35, ease: 'back.out(3)' }); })
+    .to(d, { autoAlpha: 0, duration: .05 });
+}
+function onCell(i) {
+  const c = cells[i];
+  if (S.phase === 'collect') return collect(c);
+  if (S.phase === 'bake') return hint('굽는 중!\n손잡이를 다시 눌러요');
+  if (S.phase !== 'make') return;
+  if (S.held === null) return hint('주전자나 속을\n먼저 집어요');
+  if (c.seq.length >= 3) return hint('이 칸은\n가득 찼어요');
+  if (S.held === 'kettle') {
+    c.seq.push('B'); pour(c);
+    if (c.seq.join('') === 'BB') setTimeout(() => hint('반죽 사이에\n속을 넣어야 해요'), 500);
+  } else {
+    const f = S.held; c.seq.push('F'); if (c.flavor === null) c.flavor = f;
+    dropFilling(c, f);
+    if (c.seq[0] === 'F') setTimeout(() => hint('반죽을 먼저 부어야\n안 터져요'), 350);
+  }
+}
+
+/* ---------------- bake ---------------- */
+let needleTw = null, needle = { p: 0 }, glowTw = null;
+function steamBurst(n = 12) {
+  const layer = $('#steamLayer');
+  for (let j = 0; j < n; j++) {
+    const s = document.createElement('div'); s.className = 'steam'; layer.append(s);
+    const side = Math.random();
+    const x = MOLD.x + 40 + Math.random() * (MOLD.w - 80), y = side < .7 ? MOLD.y + Math.random() * 40 : MOLD.y + MOLD.h - 30;
+    gsap.fromTo(s, { x: x - 45, y: y - 45, scale: .4, opacity: .9 }, { x: x - 45 + (Math.random() - .5) * 140, y: y - 160 - Math.random() * 160, scale: 2.4 + Math.random(), opacity: 0, duration: 1.4 + Math.random() * .8, ease: 'power1.out', delay: Math.random() * .2, onComplete: () => s.remove() });
+  }
+}
+function startBake() {
+  if (!cells.some(c => c.seq.length)) return hint('반죽부터\n부어요');
+  if (S.held !== null) dropHeld();
+  S.phase = 'bake'; S.busy = true; showCursor();
+  const lid = $('#lid');
+  gsap.timeline({ onComplete: () => { S.busy = false; } })
+    .set(lid, { visibility: 'visible', rotationY: -100 })
+    .to(lid, { rotationY: 0, duration: .5, ease: 'power3.in' })
+    .add(() => { sfx.lid(); steamBurst(14); sfx.sizzleOn(); })
+    .fromTo('#photo', { y: 0 }, { keyframes: { y: [7, -4, 3, 0] }, duration: .3 }, '<')
+    .add(() => {
+      signText.style.visibility = 'hidden'; gaugeCap.classList.remove('hint'); gaugeCap.textContent = '손잡이를 다시 눌러 꺼내요';
+      gsap.set(gauge, { autoAlpha: 1 }); gsap.fromTo('#sign', { rotation: -6 }, { rotation: 2.5, duration: .5, ease: 'back.out(3)' });
+      glowTw = gsap.fromTo('#glow', { opacity: .35 }, { opacity: .95, duration: .45, repeat: -1, yoyo: true, ease: 'sine.inOut' });
+      needle.p = 0;
+      needleTw = gsap.to(needle, { p: 1, duration: 4.6, ease: 'none', onUpdate: () => $('#needle').setAttribute('transform', `translate(${12 + 396 * needle.p} 0)`), onComplete: () => finishBake() });
+    });
+}
+let steamIv = null;
+function finishBake() {
+  if (S.phase !== 'bake' || !needleTw) return;
+  needleTw.kill(); needleTw = null;
+  const p = needle.p; S.done = p < .38 ? 'under' : p < .68 ? 'golden' : 'crisp';
+  S.busy = true; sfx.sizzleOff(); sfx.ding(); glowTw && glowTw.kill(); gsap.to('#glow', { opacity: 0, duration: .4 });
+  gsap.fromTo('#sign', { scale: 1.06 }, { scale: 1, duration: .4, ease: 'back.out(3)' });
+  gaugeCap.textContent = `${DONE[S.done].word}!`;
+  cells.forEach(c => {
+    if (!c.seq.length) return;
+    c.result = classify(c.seq);
+    const [img, fill] = AFTER[c.result];
+    const tf = c.result === 'burnt' ? 'brightness(.4) saturate(.55)' : DONE[S.done].filter;
+    c.tint.style.filter = tf; c.tint.style.opacity = tf === 'none' ? 0 : 1;
+    c.fill.style.filter = 'brightness(.8) drop-shadow(0 4px 4px rgba(0,0,0,.35))';
+    setState(c, img, { from: OPEN_R, dur: .01, force: true }); setFill(c, c.flavor, !!fill);
+  });
+  const lid = $('#lid');
+  gsap.timeline({ delay: .5, onComplete: () => { S.busy = false; } })
+    .add(() => steamBurst(8))
+    .to(lid, { rotationY: -100, duration: .55, ease: 'power2.out' })
+    .set(lid, { visibility: 'hidden' })
+    .add(() => {
+      S.phase = 'collect'; showCursor();
+      gsap.to(gauge, { autoAlpha: 0, duration: .2 }); signText.style.visibility = 'visible'; guide();
+    });
+}
+
+/* ---------------- collect ---------------- */
+const bag = $('#bag'), bagFish = $('#bagFish');
+const BAG = { x: 1500, y: 872, w: 520, h: 475 };
+const SLOTS = [{ dx: -30, r: 84 }, { dx: 42, r: 100 }, { dx: -78, r: 70 }, { dx: 84, r: 112 }];
+function collect(c) {
+  if (S.busy) return;
+  if (!c.result) return hint('빈 칸이에요');
+  if (c.collected) return hint('이미 담았어요');
+  c.collected = true; S.busy = true;
+  const kind = c.result, [, , flyImg] = AFTER[kind];
+  const it = { kind, flavor: c.flavor ?? 0, price: PRICE[kind], done: S.done };
+  const C = cellStage(c);
+  const f = document.createElement('img'); f.src = `img/${flyImg}.webp`; f.className = 'fly'; f.alt = '';
+  f.style.filter = (kind === 'burnt' ? 'brightness(.42) saturate(.6)' : DONE[S.done].filter === 'none' ? '' : DONE[S.done].filter) + ' drop-shadow(0 10px 8px rgba(0,0,0,.45))';
+  $('#fx').append(f);
+  setState(c, null); setFill(c, 0, false);
+  gsap.fromTo(cTongs, { rotation: 0 }, { rotation: -6, duration: .12, yoyo: true, repeat: 1 });
+  const x0 = C.x - 180, y0 = C.y - 120, proxy = { p: 0 };
+  if (kind === 'burnt') {
+    const x1 = x0 - 260, y1 = H + 200, yc = y0 - 260;
+    gsap.to(proxy, { p: 1, duration: 1.1, ease: 'power1.in', onUpdate() { const p = proxy.p, y = (1 - p) ** 2 * y0 + 2 * (1 - p) * p * yc + p * p * y1; gsap.set(f, { x: x0 + (x1 - x0) * p, y, rotation: -540 * p, scale: 1 - .3 * p }); },
+      onComplete: () => { f.remove(); S.items.push(it); addLine(it); sfx.thud(); finishCollect(); } });
+    hint('탄 건 버려요');
+    return;
+  }
+  const n = S.items.filter(i => i.kind !== 'burnt').length, slot = SLOTS[n % 4];
+  const tx = BAG.x + BAG.w / 2 + slot.dx - 180, ty = BAG.y + BAG.h * .21 + 30 - 120 - Math.floor(n / 4) * 14;
+  const yc = Math.min(y0, ty) - 360;
+  let inBag = false;
+  gsap.to(proxy, {
+    p: 1, duration: .85, ease: 'power1.inOut',
+    onUpdate() {
+      const p = proxy.p, x = x0 + (tx - x0) * p, y = (1 - p) ** 2 * y0 + 2 * (1 - p) * p * yc + p * p * ty;
+      if (!inBag && p > .82) { inBag = true; bagFish.append(f); }
+      gsap.set(f, { x: inBag ? x - BAG.x : x, y: inBag ? y - BAG.y : y, rotation: slot.r * p + (1 - p) * 0, scale: 1 - .42 * p });
+    },
+    onComplete: () => {
+      sfx.rustle();
+      gsap.fromTo(bag, { scaleY: .9, scaleX: 1.05 }, { scaleY: 1, scaleX: 1, duration: .8, ease: 'elastic.out(1.1,.3)' });
+      gsap.fromTo(bag, { rotation: -2.5 }, { rotation: 0, duration: .9, ease: 'elastic.out(1,.25)' });
+      S.items.push(it); addLine(it); updateSticker(); finishCollect();
+    }
+  });
+}
+function finishCollect() { S.busy = false; guide(); }
+
+/* ---------------- checkout ---------------- */
+function grade() {
+  const normal = S.items.filter(i => i.kind === 'normal').length;
+  if (normal >= 4 && S.done === 'golden') return '붕어빵 장인';
+  if (normal >= 3) return '제법인데요';
+  if (normal >= 1) return '아직 수습생';
+  return '사장님이 보고 계세요';
+}
+function checkout() {
+  if (S.phase === 'make' || S.phase === 'intro') return hint('먼저 구워야\n계산해요');
+  if (S.phase === 'bake') return hint('굽는 중!\n손잡이를 다시 눌러요');
+  if (S.phase !== 'collect' || S.busy) return;
+  if (cells.some(c => c.result && !c.collected)) return hint('틀에 남은 붕어빵부터\n담아요');
+  S.phase = 'checkout'; S.busy = true; showCursor();
+  const kept = S.items.filter(i => i.kind !== 'burnt'), sum = kept.reduce((a, b) => a + b.price, 0);
+  const rows = S.items.map(it => `<div class="row"><span>${it.kind === 'normal' ? FLAVORS[it.flavor] + ' 붕어빵' : NAMES[it.kind]}${it.kind === 'burnt' ? '(버림)' : ''}</span><span>${it.price}</span></div>`).join('') || '<div class="muted">담은 붕어빵이 없어요</div>';
+  $('#bigPaper').innerHTML = `
+    <div class="h">붕어당</div><div class="sub">겨울에만 굽는 붕어빵</div><div class="sub">${stamp()} · 주문 ${String(Math.floor(Math.random() * 900) + 100)}</div>
+    <div class="hr"></div>${rows}<div class="hr"></div>
+    <div class="row"><span>담은 붕어빵</span><span>${kept.length}마리</span></div>
+    <div class="row"><b>합계</b><b>${won(sum)}</b></div>
+    <div class="hr"></div>
+    <div class="row"><span>굽기 정도</span><span>${DONE[S.done].word}</span></div>
+    <div class="sub" style="margin-top:12px">솜씨 등급</div><div class="grade">${grade()}</div>
+    <div class="hr"></div><div class="sub">감사합니다 · 또 오세요</div>
+    <div class="note">실제 가게가 아닌 컨셉 사이트입니다</div>`;
+  const big = $('#bigReceipt');
+  gsap.set('#printer', { visibility: 'visible' });
+  const h = big.offsetHeight, steps = Math.max(10, Math.round(h / 52));
+  gsap.set(big, { y: h });
+  gsap.set('#printer', { top: Math.max(40, 1300 - h - 40), height: Math.min(1300, h + 40) });
+  gsap.set('#doneSeal', { top: Math.max(40, 1300 - h - 40) + h * .3 });
+  const tl = gsap.timeline({ onComplete: () => { S.busy = false; } });
+  tl.fromTo('#stampBtn .seal', { scale: 1 }, { scale: .86, duration: .1, yoyo: true, repeat: 1 })
+    .add(() => sfx.thud(), '<')
+    .to('#shade', { autoAlpha: 1, duration: .35 })
+    .to(big, { y: 0, duration: steps * .11, ease: `steps(${steps})`, onUpdate() { const k = Math.round(this.progress() * steps); if (k !== this._k) { this._k = k; sfx.tick(); } } })
+    .fromTo('#doneSeal', { opacity: 0, scale: 2.4, rotation: -30 }, { opacity: .92, scale: 1, rotation: -14, duration: .28, ease: 'power4.in' }, '+=.25')
+    .add(() => { sfx.thud(); gsap.fromTo('#printer', { x: 0 }, { keyframes: { x: [6, -4, 2, 0] }, duration: .25 }); })
+    .fromTo('#again', { autoAlpha: 0, scale: .3, rotation: -40 }, { autoAlpha: 1, scale: 1, rotation: 8, duration: .6, ease: 'back.out(2.5)' }, '+=.4');
+}
+
+/* ---------------- reset / intro ---------------- */
+function reset() {
+  cells.forEach(c => { c.seq = []; c.flavor = null; c.result = null; c.collected = false; c.img = null; gsap.set([c.st, c.tint], { clipPath: clip(0, c) }); c.tint.style.opacity = 0; gsap.set(c.fill, { opacity: 0 }); c.fill.style.filter = ''; });
+  S.items = []; S.done = null; S.held = null; bagFish.innerHTML = ''; updateSticker(false); resetReceipt();
+  gsap.set(['#shade', '#again'], { autoAlpha: 0 }); gsap.set('#printer', { visibility: 'hidden' }); gsap.set('#doneSeal', { opacity: 0 });
+  gsap.set(gauge, { autoAlpha: 0 }); signText.style.visibility = 'visible';
+  gsap.set(kettleBtn, { opacity: 1, scale: 1 }); gsap.set('#kettleSpot', { opacity: 0 });
+}
+function intro(full) {
+  S.phase = 'intro'; S.busy = true; showCursor(); say('붕어당에\n어서 오세요');
+  const tl = gsap.timeline({ onComplete: () => { S.phase = 'make'; S.busy = false; S.last = Date.now(); showCursor(); guide(); } });
+  tl.fromTo(kettleBtn, { y: -1300, rotation: -20 }, { y: 0, rotation: 0, duration: 1.1, ease: 'bounce.out' })
+    .fromTo('#bag', { x: 700, rotation: 12 }, { x: 0, rotation: 0, duration: .7, ease: 'back.out(1.4)' }, full ? '-=.3' : '<')
+    .fromTo('#sign', { y: -560, rotation: -14 }, { y: 0, rotation: 2.5, duration: .75, ease: 'back.out(1.6)' }, '-=.35')
+    .fromTo('#receipt', { y: 420 }, { y: 0, duration: .6, ease: 'steps(8)' }, '-=.3')
+    .fromTo(['#stampBtn', '#price'], { scale: 0 }, { scale: 1, duration: .45, ease: 'back.out(2.5)', stagger: .1 }, '-=.25');
+}
+
+/* ---------------- idle nudge ---------------- */
+setInterval(() => {
+  if (S.busy || Date.now() - S.last < 2000) return;
+  let t = null;
+  if (S.phase === 'make') {
+    const filled = cells.filter(c => c.seq.length);
+    if (S.held === null) t = filled.length && filled.every(c => c.seq.length >= 3) ? '#handle' : '#kettle';
+  } else if (S.phase === 'bake') t = '#handle';
+  else if (S.phase === 'collect' && !cells.some(c => c.result && !c.collected)) t = '#stampBtn';
+  if (!t) return;
+  if (t === '#handle') { gsap.fromTo('#photo', { x: 0 }, { keyframes: { x: [0, -3, 3, -2, 0] }, duration: .4 }); return; }
+  gsap.fromTo(t, { rotation: t === '#stampBtn' ? 4 : 0 }, { keyframes: { rotation: [-7, 6, -4, 2, t === '#stampBtn' ? 4 : 0] }, duration: .6, ease: 'none', transformOrigin: '50% 90%' });
+}, 2000);
+
+/* ---------------- input ---------------- */
+document.addEventListener('pointerdown', e => {
+  audioInit(); S.last = Date.now();
+  pointer = { x: e.clientX, y: e.clientY }; placeCursor();
+  if (!fine) { cur.style.display = 'block'; }
+  if (S.busy && S.phase !== 'bake') return;
+  const t = e.target.closest('button');
+  if (S.phase === 'bake') { if (t && t.id === 'handle') return finishBake(); if (!S.busy) hint('굽는 중!\n손잡이를 다시 눌러요'); return; }
+  if (!t) return;
+  e.preventDefault();
+  if (t.id === 'again') { if (S.phase === 'checkout' && !S.busy) { reset(); intro(false); } return; }
+  if (S.phase === 'checkout') return;
+  if (t.dataset.cell !== undefined) return onCell(+t.dataset.cell);
+  if (t.id === 'stampBtn') return checkout();
+  if (S.phase === 'collect') { if (t.id === 'kettle' || t.dataset.bin !== undefined || t.id === 'handle') hint('이번 판은 다 구웠어요\n집게로 담아요'); return; }
+  if (S.phase !== 'make') return;
+  if (t.id === 'kettle') return S.held === 'kettle' ? (dropHeld(), guide()) : (S.held !== null && dropHeld(), pickKettle());
+  if (t.dataset.bin !== undefined) return pickFilling(+t.dataset.bin);
+  if (t.id === 'handle') return startBake();
+});
+document.addEventListener('keydown', e => {
+  if ((e.key === 'Enter' || e.key === ' ') && document.activeElement && document.activeElement.tagName === 'BUTTON') {
+    e.preventDefault(); const r = document.activeElement.getBoundingClientRect();
+    document.activeElement.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, clientX: r.left + r.width / 2, clientY: r.top + r.height / 2 }));
+  }
+  if (e.key === 'Escape' && S.held !== null && S.phase === 'make') { dropHeld(); guide(); }
+});
+document.addEventListener('contextmenu', e => e.preventDefault());
+$('#turn').addEventListener('click', () => document.body.classList.add('turnSeen'));
+
+/* ---------------- boot ---------------- */
+fit(); reset();
+gsap.set(['#kettle', '#bag', '#sign', '#receipt', '#stampBtn', '#price'], { autoAlpha: 1 });
+const ready = Promise.race([document.fonts ? document.fonts.ready : Promise.resolve(), new Promise(r => setTimeout(r, 2500))]);
+const imgs = ['bg', 'b1', 'b2', 'baked', 'half', 'burst', 'closed', 'fish', 'fhalf', 'fburst', 'd0', 'd1', 'd2', 'd3'].map(n => { const i = new Image(); i.src = `img/${n}.webp`; return i.decode ? i.decode().catch(() => { }) : null; });
+Promise.all([ready, imgs[0]]).then(() => intro(true));
+window.__bungeo = { S, cells };
+})();
+</script>
+</body>
+</html>
