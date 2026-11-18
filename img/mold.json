@@ -1,0 +1,20 @@
+{
+  "source": "img/bg.webp",
+  "sourceSize": {
+    "width": 1536,
+    "height": 1024
+  },
+  "mold": {
+    "file": "img/mold.webp",
+    "x": 550,
+    "y": 351,
+    "width": 616,
+    "height": 431
+  },
+  "percent": {
+    "left": 35.8073,
+    "top": 34.2773,
+    "width": 40.1042,
+    "height": 42.0898
+  }
+}
